@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: photoview
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: photoview
+  template:
+    metadata:
+      labels:
+        app: photoview
+    spec:
+      containers:
+      - name: photoview
+        image: leobgs/photoview:latest
+        ports:
+        - containerPort: 80
+        env:
+        - name: PHOTOVIEW_DATABASE_DRIVER
+          value: "mysql"
+        - name: PHOTOVIEW_MYSQL_URL
+          value: "photoview:photosecret@tcp(db)/photoview"
+        - name: PHOTOVIEW_LISTEN_IP
+          value: "photoview"
+        - name: PHOTOVIEW_LISTEN_PORT
+          value: "80"
+
+      - name: db
+        image: mariadb:10.5
+        env:
+          - name: MYSQL_DATABASE
+            value: "photoview"
+          - name: MYSQL_USER
+            value: "photoview"
+          - name: MYSQL_PASSWORD
+            value: "photosecret"
+          - name: MYSQL_RANDOM_ROOT_PASSWORD
+            value: "1"
+        ports:
+        - containerPort: 3306
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: photoview-service
+spec:
+  selector:
+    app: photoview
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: LoadBalancer
