@@ -9,8 +9,8 @@ on:
       - v*
 
 env:
-  DOCKER_USERNAME: viktorstrate
-  DOCKER_IMAGE: viktorstrate/photoview
+  DOCKER_USERNAME: leobgs
+  DOCKER_IMAGE: leobgs/photoview
   DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
 jobs:
@@ -70,3 +70,23 @@ jobs:
           push: ${{ github.event_name != 'pull_request' && github.repository == 'photoview/photoview' }}
           tags: ${{ steps.docker_meta.outputs.tags }}
           labels: ${{ steps.docker_meta.outputs.labels }}
+
+  update-kubernetes:
+    name: Update Kubernetes Deployment
+    needs: build
+    runs-on: ubuntu-20.04
+    env:
+      DOCKER_USERNAME: leobgs
+      DOCKER_IMAGE: leobgs/photoview
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+    steps:
+      - name: Set up kubectl
+        uses: azure/k8s-set-context@v1
+        with:
+          kubeconfig: ${{ secrets.KUBE_CONFIG }}
+
+      - name: Update Kubernetes Deployment
+        run: |
+          echo "Updating Kubernetes Deployment..."
+          kubectl set image deployment/photoview photoview=${{ env.DOCKER_IMAGE }}:${{ github.sha }}
