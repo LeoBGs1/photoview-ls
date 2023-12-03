@@ -89,4 +89,4 @@ jobs:
       - name: Update Kubernetes Deployment
         run: |
           echo "Updating Kubernetes Deployment..."
-          kubectl set image deployment/photoview photoview=${{ env.DOCKER_IMAGE }}:${{ github.sha }}
+          kubectl apply -f deployment.yml  # Substitua pelo caminho real do seu arquivo
